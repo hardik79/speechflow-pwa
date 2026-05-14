@@ -9,9 +9,26 @@ export default function ListenRepeatCard({ data, onComplete }) {
   const [hasRecorded, setHasRecorded] = useState(false);
 
   const handlePlay = () => {
+    if (isPlaying) return;
     setIsPlaying(true);
-    // Simulate audio playing
-    setTimeout(() => setIsPlaying(false), 2000);
+    
+    if ('speechSynthesis' in window) {
+      // Create spoken text with pauses instead of hyphens
+      const spokenText = data.content.replace(/-/g, '.');
+      const utterance = new SpeechSynthesisUtterance(spokenText);
+      
+      // Speak slightly slower for therapy context
+      utterance.rate = 0.75; 
+      utterance.pitch = 1;
+      
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speech synthesis is not supported
+      setTimeout(() => setIsPlaying(false), 2000);
+    }
   };
 
   const handleRecord = () => {
